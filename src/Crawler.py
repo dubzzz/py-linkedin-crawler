@@ -45,6 +45,7 @@ class Crawler:
         self.already_asked = set()
         self.already_tested = set()
         self.to_be_tested = deque()
+        self.crawl_from_connections_conditions = list()
     
     def add_to_be_tested(self, profile_details):
         """
@@ -52,6 +53,12 @@ class Crawler:
         Perform checks before adding anything
         """
         if profile_details["id"] not in self.already_asked:
+            # Check Crawl from connections conditions
+            for condition in self.crawl_from_connections_conditions:
+                if not condition.is_crawlable(profile_details):
+                    return False
+
+            # This profile is correct, and added to 'to_be_tested' queue
             print "\t\t>", profile_details["details"]
             self.already_asked.add(profile_details["id"])
             self.to_be_tested.append(profile_details)
@@ -65,6 +72,16 @@ class Crawler:
         Perform checks before adding anything
         """
         return self.add_to_be_tested({"id": int(profile_id), "details": "N.A."})
+    
+    def add_crawl_from_connections(self, condition):
+        """
+        Add a condition to verify when adding new profile to be crawled for data
+        eg.: you only want to deal with profiles from company X
+        eg.: you only want to deal with profiles of people with an A in their full name
+        
+        /!\ does not apply to profiles already in self.to_be_tested
+        """
+        self.crawl_from_connections_conditions.append(condition)
 
     def has_next(self):
         """ Return True if it has at least one remaining profile id in self.to_be_tested """
@@ -149,7 +166,7 @@ class Crawler:
                     continue
 
                 # Try to add the contact to the list to be tested
-                if self.add_to_be_tested({"id": memberID, "details": "%s [%s][distance=%d]" % (full_name, headline.lower(), distance)}):
+                if self.add_to_be_tested({"id": memberID, "details": "%s [%s][distance=%d]" % (full_name, headline.lower(), distance), "fullname": full_name, "headline": headline}):
                     new_contacts += 1
         return new_contacts
 
