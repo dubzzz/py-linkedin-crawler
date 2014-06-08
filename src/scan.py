@@ -1,6 +1,11 @@
 #!/usr/bin/python
 # -*- coding: utf-8 -*-
 
+# Sample of code to show how to use Crawler
+# to crawl LinkedIn profiles
+#
+# Derive this file to make your own crawler
+
 import getpass
 import time
 import sys
