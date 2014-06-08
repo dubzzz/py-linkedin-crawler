@@ -1,5 +1,5 @@
 
-class CrawlFromConnections:
+class CrawlConditions:
     def __init__(self, conditions):
         """
         conditions is a dict()

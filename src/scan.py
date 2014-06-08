@@ -12,7 +12,7 @@ import sys
 import time
 
 from Crawler import Crawler
-from CrawlFromConnections import CrawlFromConnections
+from CrawlConditions import CrawlConditions
 
 sleep_time = 15
 
@@ -48,8 +48,8 @@ password = getpass.getpass("Password : ")
 num_scans = 0
 crawler = Crawler(login, password)
 crawler.add(sys.argv[2])
-crawler.add_crawl_from_connections(CrawlFromConnections({"headline": re.compile(r'wonderful company')}))
-crawler.add_crawl_from_connections(CrawlFromConnections({"headline": re.compile(r'recruiter')}))
+crawler.add_crawl_from_connections(CrawlConditions({"headline": re.compile(r'wonderful company')}))
+crawler.add_crawl_from_connections(CrawlConditions({"headline": re.compile(r'recruiter')}))
 
 while num_scans < max_profiles and crawler.has_next():
     # In case of big sleep
