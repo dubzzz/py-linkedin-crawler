@@ -1,6 +1,6 @@
 
 class CrawlConditions:
-    def __init__(self, conditions):
+    def __init__(self, conditions, min_depth=0):
         """
         conditions is a dict()
 
@@ -8,8 +8,12 @@ class CrawlConditions:
         and compiled regex that will be run when calling is_crawlable
         """
         self.conditions = conditions
+        self.min_depth = min_depth
 
     def is_crawlable(self, profile_details):
+        if profile_details["depth"] < self.min_depth:
+            return True
+
         for key, value in self.conditions.items():
             try:
                 profile_value = profile_details[key]

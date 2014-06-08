@@ -48,8 +48,15 @@ password = getpass.getpass("Password : ")
 num_scans = 0
 crawler = Crawler(login, password)
 crawler.add(sys.argv[2])
+
+# Crawl for profiles with
+# profile headline contains 'wonderful company'
 crawler.add_crawl_from_connections(CrawlConditions({"headline": re.compile(r'wonderful company')}))
-crawler.add_crawl_from_connections(CrawlConditions({"headline": re.compile(r'recruiter')}))
+# profile headline contains 'recruiter', taken into account for depth >= 2
+crawler.add_crawl_from_connections(CrawlConditions({"headline": re.compile(r'recruiter')}, 2))
+# ->: means connection
+# eg.: A (initial profile) -> AA (accountant for wonderful company) [depth=1] -> AAA (accountant for wonderful company) [depth=2] **IGNORED**
+#                          -> AB (accountant for wonderful company) [depth=1] -> ABA (recruiter for wonderful company) [depth=2]  **OK**
 
 while num_scans < max_profiles and crawler.has_next():
     # In case of big sleep

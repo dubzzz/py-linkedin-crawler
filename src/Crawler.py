@@ -71,7 +71,7 @@ class Crawler:
         Add a profile in self.to_be_tested
         Perform checks before adding anything
         """
-        return self.add_to_be_tested({"id": int(profile_id), "details": "N.A."})
+        return self.add_to_be_tested({"id": int(profile_id), "details": "N.A.", "depth": 0})
     
     def add_crawl_from_connections(self, condition):
         """
@@ -166,7 +166,7 @@ class Crawler:
                     continue
 
                 # Try to add the contact to the list to be tested
-                if self.add_to_be_tested({"id": memberID, "details": "%s [%s][distance=%d]" % (full_name, headline.lower(), distance), "fullname": full_name, "headline": headline}):
+                if self.add_to_be_tested({"id": memberID, "details": "%s [%s][distance=%d]" % (full_name, headline.lower(), distance), "fullname": full_name, "headline": headline, "depth": current["depth"] +1}):
                     new_contacts += 1
         return new_contacts
 
