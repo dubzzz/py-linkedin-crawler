@@ -104,11 +104,55 @@ class Crawler:
         print "\tOpening profile: %s" % Crawler.PROFILE_URL.format(id=current["id"])
         contact_profile_info = requests.get(Crawler.PROFILE_URL.format(id=current["id"]), cookies=self.cookies)
         self.cookies = contact_profile_info.cookies
+        
+        # Retrieve profile details
+
+        self.get_profile_details(current, contact_profile_info)
 
         # Retrive its contacts from JSON files
         
         new_contacts += self.get_next_contacts(current)
         print "\t%d new contacts" % new_contacts
+    
+    def get_profile_details(self, current, profile_webpage):
+        # Find and analyse every json data included into the profile webpage
+        # it contains data concerning current user details, endorsers..
+        #with open("profile.html", "w+") as f:
+        #    f.write(profile_webpage.text.encode("utf-8"))
+        jsons_current_info = re.findall(r"(?P<json>\{[^}^{]*\})", profile_webpage.text.encode("utf-8"))
+        for js_current in jsons_current_info:
+            try:
+                js_tmp = json.loads(js_current)
+            except ValueError, e: # Invalid syntax
+                #print "\tERROR > JSON from profile: Invalid syntax"
+                continue
+            
+            # Check if the current JSON contains an user id
+            try:
+                memberID = int(js_tmp["memberID"])
+            except KeyError:
+                continue
+            except ValueError: # for int(.)
+                continue
+            except TypeError: # for int(.)
+                continue
+            
+            # Check if this user id is the one in current
+            if memberID != current["id"]:
+                continue
+            
+            # Add details to current user
+            for key, value in js_tmp.items():
+                if key not in current:
+                    current[key] = value
+                    #print "\t- %s: %s" % (unicode(key), unicode(value))
+        
+        try:
+            print "\tScanning <%s> profile" % current["fullname"]
+        except KeyError:
+            pass
+        
+        return current
 
     def get_next_contacts(self, current):
         """
