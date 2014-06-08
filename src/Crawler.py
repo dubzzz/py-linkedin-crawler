@@ -51,7 +51,7 @@ class Crawler:
         Add a profile in self.to_be_tested
         Perform checks before adding anything
         """
-        if profile_details["id"] not in self.already_tested:
+        if profile_details["id"] not in self.already_asked:
             print "\t\t>", profile_details["details"]
             self.already_asked.add(profile_details["id"])
             self.to_be_tested.append(profile_details)
@@ -64,7 +64,7 @@ class Crawler:
         Add a profile in self.to_be_tested
         Perform checks before adding anything
         """
-        return self.add_to_be_tested({"id": str(profile_id), "details": "N.A."})
+        return self.add_to_be_tested({"id": int(profile_id), "details": "N.A."})
 
     def has_next(self):
         """ Return True if it has at least one remaining profile id in self.to_be_tested """
@@ -131,10 +131,10 @@ class Crawler:
                 # Get data from relevant fields
                 # On failure: continue to next contact
                 try:
-                    headline = sub_contact["headline"]
-                    memberID = sub_contact["memberID"]
-                    distance = sub_contact["distance"]
-                    full_name = sub_contact["fmt__full_name"]
+                    headline = unicode(sub_contact["headline"]) # JSON can output: integers, None, strings, doubles..
+                    memberID = int(sub_contact["memberID"])
+                    distance = int(sub_contact["distance"])
+                    full_name = unicode(sub_contact["fmt__full_name"])
                 except KeyError, e:
                     print "\tERROR > JSON file: contact details - %s" % e
                     #print "\tERROR > %s" % sub_contact.encode('utf-8')
@@ -143,9 +143,13 @@ class Crawler:
                     print "\tERROR > JSON file: contact details - %s" % e
                     #print "\tERROR > %s" % sub_contact.encode('utf-8')
                     continue
+                except TypeError, e:
+                    print "\tERROR > JSON file: contact details - %s" % e
+                    #print "\tERROR > %s" % sub_contact.encode('utf-8')
+                    continue
 
                 # Try to add the contact to the list to be tested
-                if self.add_to_be_tested({"id": memberID, "details": "%s [%s][distance=%s]" % (full_name, headline.lower(), distance)}):
+                if self.add_to_be_tested({"id": memberID, "details": "%s [%s][distance=%d]" % (full_name, headline.lower(), distance)}):
                     new_contacts += 1
         return new_contacts
 
