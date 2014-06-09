@@ -165,13 +165,19 @@ class Crawler:
         #with open("profile.html", "w+") as f:
         #    f.write(profile_webpage.text.encode("utf-8"))
         jsons_current_info = re.findall(r"(?P<json>\{[^}^{]*\})", profile_webpage.text.encode("utf-8"))
+        json_objects = list()
+
         for js_current in jsons_current_info:
             try:
-                js_tmp = json.loads(js_current)
+                json_objects.append(json.loads(js_current))
             except ValueError, e: # Invalid syntax
                 #print "\tERROR > JSON from profile: Invalid syntax"
                 continue
-            
+        
+        del jsons_current_info
+        
+        # More user details
+        for js_tmp in json_objects:
             # Check if the current JSON contains an user id
             try:
                 memberID = int(js_tmp["memberID"])
@@ -191,6 +197,19 @@ class Crawler:
                 if key not in current:
                     current[key] = value
                     #print "\t- %s: %s" % (unicode(key), unicode(value))
+        
+        # Companies and Schools
+        for js_tmp in json_objects:
+            if "title_highlight" in js_tmp and "companyName" in js_tmp:
+                if "startdate_my" in js_tmp:
+                    if "enddate_my" in js_tmp:
+                        print "\t> Worked as '%s' for '%s', from %s until %s" % (js_tmp["title_highlight"], js_tmp["companyName"], js_tmp["startdate_my"], js_tmp["enddate_my"])
+                    else:
+                        print "\t> Worked as '%s' for '%s', from %s until <undefined>" % (js_tmp["title_highlight"], js_tmp["companyName"], js_tmp["startdate_my"])
+                else:
+                        print "\t> Worked as '%s' for '%s'" % (js_tmp["title_highlight"], js_tmp["companyName"])
+            elif "educationId" in js_tmp and "schoolName" in js_tmp:
+                print "\t> Studied at %s" % js_tmp["schoolName"]
         
         try:
             print "\tScanning <%s> profile" % current["fullname"]
