@@ -6,9 +6,6 @@ from collections import deque
 
 class Crawler:
     # Static attributes
-    DEPTH_FIRST_SEARCH = 0
-    BREADTH_FIRST_SEARCH = 1
-    RANDOM_SEARCH = 2
     PROFILE_URL = "https://www.linkedin.com/profile/view?id={id}"
     CONTACTS_PER_PROFILE = 10
     PROFILE_CONTACTS = "https://www.linkedin.com/profile/profile-v2-connections?id={id}&offset={offset}&count={per_profile}&distance=0&type=INITIAL"
