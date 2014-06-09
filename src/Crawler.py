@@ -15,7 +15,7 @@ class Crawler:
     
     def __init__(self, login, password):
         # Open login page in order to avoid CSRF problems
-        print("Openning sign in page...")
+        print("Opening sign in page...")
         login_page_info = requests.get("https://www.linkedin.com/uas/login?goback=&trk=hb_signin")
         login_page = login_page_info.text.replace("\n", " ")
         
@@ -46,6 +46,8 @@ class Crawler:
         self.already_tested = set()
         self.to_be_tested = deque()
         self.crawl_from_connections_conditions = list()
+        self.targets_full_profile = list()
+        self.targets_short_profile = list()
     
     def add_to_be_tested(self, profile_details):
         """
@@ -58,6 +60,10 @@ class Crawler:
                 if not condition.is_crawlable(profile_details):
                     return False
 
+            # Update targets
+            for target in self.targets_short_profile:
+                target.check_if_targeted(profile_details)
+            
             # This profile is correct, and added to 'to_be_tested' queue
             print "\t\t>", profile_details["details"]
             self.already_asked.add(profile_details["id"])
@@ -82,10 +88,45 @@ class Crawler:
         /!\ does not apply to profiles already in self.to_be_tested
         """
         self.crawl_from_connections_conditions.append(condition)
+    
+    def add_target_full_profile(self, target):
+        """
+        You are looking for someone you met on a fair. You know the company, the first name.
+        Try to find its LinkedIn profile with this feature
+        
+        full profile requires to go on the person's profile
+        """
+        self.targets_full_profile.append(target)
+    
+    def add_target_short_profile(self, target):
+        """
+        Same as add_target_full_profile
+
+        Does not need full profile but just some details: headline, fullname..
+        """
+        self.targets_short_profile.append(target)
 
     def has_next(self):
         """ Return True if it has at least one remaining profile id in self.to_be_tested """
         return True if self.to_be_tested else False
+    
+    def has_found_targets_full_profile(self):
+        for target in self.targets_full_profile:
+            if not target.has_found_target():
+                return False
+        return True
+    
+    def has_found_targets_short_profile(self):
+        for target in self.targets_short_profile:
+            if not target.has_found_target():
+                return False
+        return True
+
+    def get_targets_full_profile(self):
+        return self.targets_full_profile
+
+    def get_targets_short_profile(self):
+        return self.targets_short_profile
 
     def visit_next(self):
         """ Crawl the webpages corresponding to the next profile """
@@ -107,7 +148,11 @@ class Crawler:
         
         # Retrieve profile details
 
-        self.get_profile_details(current, contact_profile_info)
+        current = self.get_profile_details(current, contact_profile_info)
+        
+        # Update targets
+        for target in self.targets_full_profile:
+            target.check_if_targeted(current)
 
         # Retrive its contacts from JSON files
         
